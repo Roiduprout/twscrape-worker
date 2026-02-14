@@ -13,11 +13,10 @@ api = API()
 
 async def run():
     for username in ACCOUNTS_TO_MONITOR:
-        tweets = await api.user_tweets(username, limit=20)
-
         threads = {}
 
-        for tweet in tweets:
+        async for tweet in api.user_tweets(username, limit=20):
+
             if tweet.retweeted_tweet:
                 continue
 
