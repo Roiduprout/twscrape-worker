@@ -4,27 +4,41 @@ import time
 import os
 from twscrape import API
 
-# ⚠️ REMPLACE PAR TON ENDPOINT LOVABLE
+# ⚠️ REMPLACE PAR TON VRAI ENDPOINT LOVABLE
 CRM_ENDPOINT = "https://dhworpjdtpfnevqigwbe.supabase.co/functions/v1/ingest-tweet"
 
-# Comptes à surveiller
+# Comptes que tu veux surveiller
 ACCOUNTS_TO_MONITOR = [
     "alexhormozi"
 ]
 
 api = API()
 
-# 🔐 Connexion au compte Twitter
+# 🔐 Connexion au compte Twitter avec proxy
 async def init_account():
     acc = os.getenv("TWITTER_ACCOUNT")
+    proxy = os.getenv("PROXY")
 
-    if acc:
-        email, password, username = acc.split(":")
-        await api.pool.add_account(username, password, email, password)
-        await api.pool.login_all()
-        print(f"Logged in as {username}")
-    else:
-        print("No TWITTER_ACCOUNT found")
+    if not acc:
+        print("❌ TWITTER_ACCOUNT manquant")
+        return
+
+    if not proxy:
+        print("❌ PROXY manquant")
+        return
+
+    email, password, username = acc.split(":")
+
+    await api.pool.add_account(
+        username=username,
+        password=password,
+        email=email,
+        email_password=password,
+        proxy=proxy
+    )
+
+    await api.pool.login_all()
+    print(f"✅ Logged in as {username} using proxy")
 
 # 🔄 Scraping
 async def run():
@@ -65,7 +79,7 @@ async def run():
             try:
                 requests.post(CRM_ENDPOINT, json=payload)
             except Exception as e:
-                print("Erreur:", e)
+                print("❌ Erreur envoi CRM:", e)
 
 # 🚀 Main loop
 async def main():
