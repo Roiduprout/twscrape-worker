@@ -1,6 +1,7 @@
 import asyncio
 import requests
 import time
+import os
 from twscrape import API
 
 CRM_ENDPOINT = "https://dhworpjdtpfnevqigwbe.supabase.co/functions/v1/ingest-tweet"
@@ -10,6 +11,14 @@ ACCOUNTS_TO_MONITOR = [
 ]
 
 api = API()
+
+async def init_account():
+    acc = os.getenv("TWITTER_ACCOUNT")
+
+    if acc:
+        email, password, username = acc.split(":")
+        await api.pool.add_account(username, password, email)
+        await api.pool.login_all()
 
 async def run():
     for username in ACCOUNTS_TO_MONITOR:
@@ -51,6 +60,10 @@ async def run():
             except Exception as e:
                 print("Erreur:", e)
 
-while True:
-    asyncio.run(run())
-    time.sleep(600)
+async def main():
+    await init_account()
+    while True:
+        await run()
+        time.sleep(600)
+
+asyncio.run(main())
